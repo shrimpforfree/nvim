@@ -10,7 +10,7 @@ return {
       end,
     },
   },
-  ft = { 'scala', 'sbt', 'java' },
+  ft = { 'scala', 'sbt'},
   opts = function()
     local metals_config = require('metals').bare_config()
 
@@ -25,7 +25,6 @@ return {
       },
       -- you can add other settings here too
       fallbackScalaVersion = '3.7.1',
-
     }
 
     -- disable Metals’ built-in status messages (we’ll use fidget.nvim)
@@ -75,5 +74,10 @@ return {
       end,
       group = metals_augroup,
     })
+
+    -- Also attach immediately if we're already in a scala file
+    if vim.bo.filetype == 'scala' or vim.bo.filetype == 'sbt' or vim.bo.filetype == 'java' then
+      require('metals').initialize_or_attach(metals_config)
+    end
   end,
 }

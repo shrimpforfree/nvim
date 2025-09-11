@@ -34,13 +34,12 @@ return {
         html = { 'prettier' },
         css = { 'prettier' },
         js = { 'prettier' },
+        javascript = { 'prettier' },
         ts = { 'prettier' },
-        -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
         scala = { 'scalafmt' },
+        sh = { 'shfmt', 'shellcheck' },
+        markdown = { 'prettier' },
       },
       formatters = {
         scalafmt = {
