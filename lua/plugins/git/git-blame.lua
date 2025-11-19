@@ -10,7 +10,7 @@ return {
     -- your configuration comes here
     -- for example
     enabled = true, -- if you want to enable the plugin
-    message_template = '<author> <<date>>', -- template for the blame message, check the Message template section for more options
+    message_template = " <summary> • <date> • <author> • <<sha>>",
     date_format = '%m-%d-%y', -- template for the date, check Date format section for more options
     virtual_text_column = 80, -- virtual text start column, check Start virtual text at column section for more options
   },

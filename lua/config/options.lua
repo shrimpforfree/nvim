@@ -11,6 +11,11 @@ vim.o.expandtab = true -- Always use spaces
 vim.o.tabstop = 2 -- Tab display width
 vim.o.softtabstop = 2 -- Soft tab width
 vim.o.shiftwidth = 2 -- Indent width
+vim.opt.expandtab = true
+vim.opt.tabstop = 2
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.shiftround = true -- Round indent to multiple of shiftwidth
 
 vim.o.smartindent = true -- Smart indentation
 vim.o.number = true -- Line numbers default

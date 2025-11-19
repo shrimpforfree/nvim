@@ -49,7 +49,10 @@ return {
           stdin = true,
         },
         prettier = {
-          args = { '--stdin-filepath', '$FILENAME', '--print-width', '200' },
+          args = { '--stdin-filepath', '$FILENAME', '--print-width', '200', '--tab-width', '2', '--use-tabs', 'false' },
+        },
+        shfmt = {
+          args = { '-i', '2', '-bn', '-ci', '-sr' },
         },
       },
     },

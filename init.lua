@@ -1,7 +1,3 @@
-require("config.keymaps")
-require("config.options")
-require("config.lazy")
-require("config.autocmd")
-
+require("config")
 
 -- The line beneath this is called `modeline`. See `:help modeline`
