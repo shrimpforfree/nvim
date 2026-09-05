@@ -246,7 +246,8 @@ vim.pack.add({
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", branch = "main", build = ":TSUpdate" },
   -- LSP / completion / debugging
   "https://github.com/neovim/nvim-lspconfig",
-  "https://github.com/creativenull/efmls-configs-nvim",
+  "https://github.com/stevearc/conform.nvim",
+  "https://github.com/mfussenegger/nvim-lint",
   { src = "https://github.com/saghen/blink.cmp", version = vim.version.range("1.*") },
   "https://github.com/j-hui/fidget.nvim",
   "https://github.com/scalameta/nvim-metals",
@@ -433,7 +434,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
           bufnr = bufnr,
         })
         vim.defer_fn(function()
-          vim.lsp.buf.format({ bufnr = bufnr })
+          require("conform").format({ bufnr = bufnr })
         end, 50)
       end, "Organize imports + format")
     end
@@ -487,41 +488,65 @@ vim.lsp.config("lua_ls", {
   },
 })
 
--- efm: linters + formatters
-do
-  local function linter(name) return require("efmls-configs.linters." .. name) end
-  local function formatter(name) return require("efmls-configs.formatters." .. name) end
+vim.lsp.enable({ "lua_ls", "pyright", "bashls", "ts_ls", "gopls", "clangd" })
 
-  local eslint_d, prettier_d = linter("eslint_d"), formatter("prettier_d")
-  local clang_format, cpplint = formatter("clang_format"), linter("cpplint")
-  local languages = {
-    c = { clang_format, cpplint },
-    cpp = { clang_format, cpplint },
-    go = { formatter("gofumpt"), linter("go_revive") },
-    lua = { linter("luacheck"), formatter("stylua") },
-    python = { linter("flake8"), formatter("black") },
-    sh = { linter("shellcheck"), formatter("shfmt") },
-    json = { eslint_d, formatter("fixjson") },
-    jsonc = { eslint_d, formatter("fixjson") },
-    css = { prettier_d },
-    html = { prettier_d },
-    markdown = { prettier_d },
-    javascript = { eslint_d, prettier_d },
-    javascriptreact = { eslint_d, prettier_d },
-    typescript = { eslint_d, prettier_d },
-    typescriptreact = { eslint_d, prettier_d },
-    vue = { eslint_d, prettier_d },
-    svelte = { eslint_d, prettier_d },
-  }
+-- ============================================================================
+-- FORMATTING (conform.nvim) & LINTING (nvim-lint)
+-- ============================================================================
+local prettier = { "prettierd" }
+require("conform").setup({
+  formatters_by_ft = {
+    lua = { "stylua" },
+    python = { "black" },
+    sh = { "shfmt" },
+    c = { "clang_format" },
+    cpp = { "clang_format" },
+    go = { "gofumpt" },
+    json = { "fixjson" },
+    jsonc = { "fixjson" },
+    css = prettier,
+    html = prettier,
+    markdown = prettier,
+    javascript = prettier,
+    javascriptreact = prettier,
+    typescript = prettier,
+    typescriptreact = prettier,
+    vue = prettier,
+    svelte = prettier,
+  },
+  default_format_opts = { lsp_format = "fallback" }, -- use the LSP when no formatter is listed
+})
+map({ "n", "v" }, "<leader>cf", function() require("conform").format({ async = true }) end, { desc = "Format" })
 
-  vim.lsp.config("efm", {
-    filetypes = vim.tbl_keys(languages),
-    init_options = { documentFormatting = true },
-    settings = { languages = languages },
-  })
-end
-
-vim.lsp.enable({ "lua_ls", "pyright", "bashls", "ts_ls", "gopls", "clangd", "efm" })
+local lint = require("lint")
+local eslint = { "eslint_d" }
+lint.linters_by_ft = {
+  lua = { "luacheck" },
+  python = { "flake8" },
+  sh = { "shellcheck" },
+  c = { "cpplint" },
+  cpp = { "cpplint" },
+  go = { "revive" },
+  javascript = eslint,
+  javascriptreact = eslint,
+  typescript = eslint,
+  typescriptreact = eslint,
+  vue = eslint,
+  svelte = eslint,
+}
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
+  group = augroup,
+  callback = function()
+    -- only run linters whose executable is installed, so missing tools stay silent
+    local names = vim.tbl_filter(function(name)
+      local cmd = lint.linters[name].cmd
+      return vim.fn.executable(type(cmd) == "function" and cmd() or cmd) == 1
+    end, lint.linters_by_ft[vim.bo.filetype] or {})
+    if #names > 0 then
+      lint.try_lint(names)
+    end
+  end,
+})
 
 -- ============================================================================
 -- SCALA: nvim-metals + nvim-dap
